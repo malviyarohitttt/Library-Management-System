@@ -13,7 +13,8 @@ import { MetricsInterceptor, MetricsModule, MetricsService } from './metrics';
 import { PrismaModule } from './prisma';
 import { AuthModule } from './auth';
 import { RedisModule } from './redis';
-import { BookModule } from './book/book.module';
+import { LibrariansModule } from './librarians/librarians.module';
+import { MembersModule } from './members/members.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { BookModule } from './book/book.module';
     PrismaModule,
     RedisModule,
     AuthModule,
-    BookModule,
+    LibrariansModule,
+    MembersModule,
   ],
   controllers: [AppController],
   providers: [

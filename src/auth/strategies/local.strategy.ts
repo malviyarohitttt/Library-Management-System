@@ -1,32 +1,34 @@
+/* eslint-disable prefer-const */
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Strategy } from 'passport-local';
 import { ValidatedUser } from '@Common';
 import { LOCAL_AUTH } from '../auth.constants';
-import { UsersService } from '../../users';
-import { AdminService } from '../../admin';
+import { LibrariansService } from 'src/librarians/librarians.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, LOCAL_AUTH) {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly adminService: AdminService,
-  ) {
+  constructor(private readonly librariansService: LibrariansService) {
     super({
       usernameField: 'email',
     });
   }
 
   async validate(email: string, password: string): Promise<ValidatedUser> {
-    let user: false | ValidatedUser | null;
+    let librarian: false | ValidatedUser | null;
 
-    user = await this.usersService.validateCredentials(email, password);
-    if (user === null) {
-      user = await this.adminService.validateCredentials(email, password);
+    librarian = await this.librariansService.validateCredentials(
+      email,
+      password,
+    );
+
+    if (librarian === null) {
+      if (librarian === false)
+        throw new UnauthorizedException('Incorrect password');
     }
-    if (user) return user;
-    if (user === false) throw new UnauthorizedException('Incorrect password');
 
-    throw new UnauthorizedException('User does not exist');
+    if (librarian) return librarian;
+
+    throw new UnauthorizedException('Librarian does not exist');
   }
 }

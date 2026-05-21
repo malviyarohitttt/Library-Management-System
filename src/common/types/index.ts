@@ -23,18 +23,18 @@ export enum Environment {
 
 export class EnvironmentVariables {
   @IsEnum(NodeType)
-  NODE_TYPE: NodeType;
+  NODE_TYPE!: NodeType;
 
   @IsEnum(Environment)
-  NODE_ENV: Environment;
+  NODE_ENV!: Environment;
 
   @IsEnum(Environment)
-  APP_ENV: Environment;
+  APP_ENV!: Environment;
 
   @IsInt()
   @Min(1)
   @Max(65535)
-  PORT: number;
+  PORT!: number;
 
   @IsOptional()
   @IsInt()
@@ -42,13 +42,13 @@ export class EnvironmentVariables {
   CLUSTER_WORKERS?: number;
 
   @IsString()
-  DATABASE_URL: string;
+  DATABASE_URL!: string;
 
   @IsString()
-  REDIS_URI: string;
+  REDIS_URI!: string;
 
   @IsString()
-  STORAGE_DIR: string;
+  STORAGE_DIR!: string;
 
   @IsOptional()
   @IsBoolean()
@@ -97,8 +97,6 @@ export interface File {
 }
 
 export enum UserType {
-  User = 'user',
-  Admin = 'admin',
   Librarian = 'librarian',
 }
 

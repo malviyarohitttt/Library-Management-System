@@ -4,15 +4,15 @@ import { ConfigType } from '@nestjs/config';
 import { jwtConfigFactory } from '@Config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { GoogleStrategy, LocalStrategy } from './strategies';
-import { AdminModule } from '../admin';
-import { UsersModule } from '../users';
 import { OtpModule } from '../otp';
+import { MembersModule } from 'src/members/members.module';
+import { LibrariansModule } from 'src/librarians/librarians.module';
+import { LocalStrategy } from './strategies';
 
 @Module({
   imports: [
-    AdminModule,
-    UsersModule,
+    LibrariansModule,
+    MembersModule,
     OtpModule,
     JwtModule.registerAsync({
       useFactory: (config: ConfigType<typeof jwtConfigFactory>) => ({
@@ -23,7 +23,7 @@ import { OtpModule } from '../otp';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, GoogleStrategy],
+  providers: [AuthService, LocalStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

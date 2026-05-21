@@ -8,25 +8,110 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-enum AdminStatus {
-  Active    @map("active")
-  Suspended @map("suspended")
-
-  @@map("admin_status")
+enum Role {
+  Librarian @map("librarian")
 }
 
-enum UserStatus {
+enum MembershipStatus {
   Active  @map("active")
   Blocked @map("blocked")
 
-  @@map("user_status")
+  @@map("membership_status")
 }
 
-enum UserRoles {
-  User      @map("user")
-  Librarian @map("librarian")
+enum RentalStatus {
+  Issued   @map("issued")
+  Returned @map("returned")
+  Overdue  @map("overdue")
 
-  @@map("user_roles")
+  @@map("rental_status")
+}
+
+enum LibrarianStatus {
+  Active    @map("active")
+  Suspended @map("suspended")
+
+  @@map("librarian_status")
+}
+
+model Librarian {
+  id            Int             @id @default(autoincrement())
+  name          String
+  email         String          @unique
+  status        LibrarianStatus @default(Active)
+  role          Role            @default(Librarian)
+  rentals       Rental[]        @relation("IssuedBy")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  librarianMeta LibrarianMeta?
+
+  @@map("librarian")
+}
+
+model LibrarianMeta {
+  passwordSalt String? @map("password_salt")
+  passwordHash String? @map("password_hash")
+
+  librarian   Librarian @relation(fields: [librarianId], references: [id])
+  librarianId Int       @unique @map("librarian_id")
+
+  @@map("librarian_meta")
+}
+
+model Member {
+  id               Int              @id @default(autoincrement())
+  membershipId     String           @unique
+  name             String
+  email            String?          @unique
+  phone            String           @unique
+  address          String?
+  joiningDate      DateTime         @default(now())
+  membershipStatus MembershipStatus @default(Active)
+  rentals          Rental[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("members")
+}
+
+model Book {
+  id              Int      @id @default(autoincrement())
+  title           String
+  author          String
+  isbn            String   @unique
+  genre           String?
+  description     String?
+  publishedYear   Int?
+  rackNumber      String?
+  totalCopies     Int      @default(1)
+  availableCopies Int      @default(1)
+  rentals         Rental[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("books")
+}
+
+model Rental {
+  id         Int          @id @default(autoincrement())
+  issueDate  DateTime     @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+  status     RentalStatus @default(Issued)
+
+  memberId Int
+  member   Member @relation(fields: [memberId], references: [id])
+
+  bookId Int
+  book   Book @relation(fields: [bookId], references: [id])
+
+  issuedById Int
+  issuedBy   Librarian @relation("IssuedBy", fields: [issuedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rentals")
 }
 
 enum OtpTransport {
@@ -34,96 +119,6 @@ enum OtpTransport {
   Mobile @map("mobile")
 
   @@map("otp_transport")
-}
-
-enum SettingType {
-  Binary       @map("binary")
-  MultiSelect  @map("multi_select")
-  SingleSelect @map("single_select")
-
-  @@map("setting_type")
-}
-
-enum SettingContext {
-  User   @map("user")
-  System @map("system")
-
-  @@map("setting_context")
-}
-
-model Admin {
-  id           Int         @id @default(autoincrement())
-  firstname    String
-  lastname     String
-  email        String      @unique
-  profileImage String?     @map("profile_image")
-  status       AdminStatus @default(Active)
-
-  meta AdminMeta?
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("admin")
-}
-
-model AdminMeta {
-  passwordSalt String? @map("password_salt")
-  passwordHash String? @map("password_hash")
-
-  admin   Admin @relation(fields: [adminId], references: [id])
-  adminId Int   @unique @map("admin_id")
-
-  @@map("admin_meta")
-}
-
-model User {
-  id           Int     @id @default(autoincrement())
-  firstname    String
-  lastname     String
-  username     String? @unique
-  email        String  @unique
-  dialCode     String? @map("dial_code")
-  mobile       String? @unique
-  profileImage String? @map("profile_image")
-  isVerified   Boolean @default(false) @map("is_verified")
-  country      String?
-
-  role   UserRoles  @default(User)
-  status UserStatus @default(Active)
-
-  meta      UserMeta?
-  settings  UserSetting[]
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
-
-  @@map("user")
-}
-
-model UserMeta {
-  googleId     String? @unique @map("google_id")
-  passwordSalt String? @map("password_salt")
-  passwordHash String? @map("password_hash")
-
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @unique @map("user_id")
-
-  @@map("user_meta")
-}
-
-model Book {
-  id              Int     @id @default(autoincrement())
-  title           String
-  auther          String
-  publishedYear   Int     @map("published_year")
-  available       Boolean @default(true) @map("available")
-  totalCopies     Int
-  availableCopies Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("book")
 }
 
 model Otp {
@@ -141,66 +136,4 @@ model Otp {
 
   @@unique([transport, target])
   @@map("otp")
-}
-
-model Setting {
-  id Int @id @default(autoincrement())
-
-  mappedTo    String @map("mapped_to")
-  text        String @default("")
-  description String @default("")
-
-  type    SettingType
-  context SettingContext
-
-  default Json
-
-  isDefinedOptions Boolean @map("is_defined_options")
-
-  subSettings Setting[] @relation("SubSettings")
-  dependsOn   Setting?  @relation("SubSettings", fields: [parentId], references: [id])
-
-  parentId Int? @map("parent_id")
-
-  options        SettingOption[]
-  userSettings   UserSetting[]
-  systemSettings SystemSetting[]
-
-  @@unique([context, mappedTo])
-  @@map("setting")
-}
-
-model SettingOption {
-  id    Int    @id @default(autoincrement())
-  text  String @default("")
-  value String
-
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
-
-  @@unique([settingId, value])
-  @@map("setting_option")
-}
-
-model UserSetting {
-  selection Json
-
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @map("user_id")
-
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
-
-  @@id([userId, settingId])
-  @@map("user_setting")
-}
-
-model SystemSetting {
-  selection Json
-
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
-
-  @@id([settingId])
-  @@map("system_setting")
 }

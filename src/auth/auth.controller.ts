@@ -38,7 +38,7 @@ import {
 import { GoogleOAuthGuard, LocalAuthGuard } from './guards';
 import {
   ForgotPasswordRequestDto,
-  RegisterUserRequestDto,
+  RegisterLibrarianRequestDto,
   ResetPasswordRequestDto,
   SendCodeRequestDto,
   LoginRequestDto,
@@ -111,62 +111,35 @@ export class AuthController extends BaseController {
     });
   }
 
-  @Post('send-code')
-  async sendCode(@Body() data: SendCodeRequestDto) {
-    if (data.mobile && !data.country) {
-      throw new BadRequestException();
-    }
+  // @Post('register')
+  // async register(
+  //   @Res({ passthrough: true }) res: Response,
+  //   @Body() data: RegisterLibrarianRequestDto,
+  // ) {
+  //   const response = await this.authService.registerUser({
+  //     name: data.name,
+  //     email: data.email,
+  //     password: data.password,
+  //     mobile: data.mobile,
+  //     country: data.country,
+  //     emailVerificationCode: data.emailVerificationCode,
+  //     mobileVerificationCode: data.mobileVerificationCode,
+  //   });
 
-    const response = {} as Record<'email' | 'mobile', SendCodeResponse>;
-    if (data.email) {
-      response.email = await this.authService.sendCode(
-        data.email,
-        OtpTransport.Email,
-        data.type,
-      );
-    }
-    if (data.mobile) {
-      response.mobile = await this.authService.sendCode(
-        data.mobile,
-        OtpTransport.Mobile,
-        data.type,
-      );
-    }
+  //   if (
+  //     (response as InvalidVerifyCodeResponse).email ||
+  //     (response as InvalidVerifyCodeResponse).mobile
+  //   ) {
+  //     throw new UnprocessableEntityException({
+  //       statusCode: 422,
+  //       message: 'Invalid verification code',
+  //       meta: response as InvalidVerifyCodeResponse,
+  //     });
+  //   }
 
-    return response;
-  }
-
-  @Post('register')
-  async register(
-    @Res({ passthrough: true }) res: Response,
-    @Body() data: RegisterUserRequestDto,
-  ) {
-    const response = await this.authService.registerUser({
-      firstname: data.firstname,
-      lastname: data.lastname,
-      email: data.email,
-      password: data.password,
-      dialCode: data.dialCode,
-      mobile: data.mobile,
-      country: data.country,
-      emailVerificationCode: data.emailVerificationCode,
-      mobileVerificationCode: data.mobileVerificationCode,
-    });
-
-    if (
-      (response as InvalidVerifyCodeResponse).email ||
-      (response as InvalidVerifyCodeResponse).mobile
-    ) {
-      throw new UnprocessableEntityException({
-        statusCode: 422,
-        message: 'Invalid verification code',
-        meta: response as InvalidVerifyCodeResponse,
-      });
-    }
-
-    const { accessToken, expiresIn, type } = response as ValidAuthResponse;
-    return { accessToken, expiresIn, type };
-  }
+  //   const { accessToken, expiresIn, type } = response as ValidAuthResponse;
+  //   return { accessToken, expiresIn, type };
+  // }
 
   @ApiBody({ type: () => LoginRequestDto })
   @UseGuards(LocalAuthGuard)
@@ -183,27 +156,6 @@ export class AuthController extends BaseController {
     return { accessToken, expiresIn, type };
   }
 
-  @UseGuards(GoogleOAuthGuard)
-  @Get('google')
-  googleOAuth() {}
-
-  @ApiExcludeEndpoint()
-  @UseGuards(GoogleOAuthGuard)
-  @Get('google/callback')
-  @Redirect()
-  async googleWebOAuthCallback(
-    @Req() req: Request & { user: ValidatedUser },
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { accessToken, expiresIn, type } = await this.authService.login(
-      req.user.id,
-      req.user.type,
-    );
-    return {
-      url: this.appConfig.appWebUrl as string,
-    };
-  }
-
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('logout')
@@ -213,26 +165,6 @@ export class AuthController extends BaseController {
   ) {
     const ctx = this.getContext(req);
     this.removeCookie(res, this.getAuthCookie(ctx.user.type));
-    return { status: 'success' };
-  }
-
-  @Post('forgot-password')
-  @HttpCode(200)
-  async forgotPassword(@Body() data: ForgotPasswordRequestDto) {
-    if (!data.email && !data.mobile) throw BadRequestException;
-    return await this.authService.forgotPassword(data.email, data.mobile);
-  }
-
-  @Post('reset-password')
-  @HttpCode(200)
-  async resetPassword(@Body() data: ResetPasswordRequestDto) {
-    if (!data.email && !data.mobile) throw new BadRequestException();
-    await this.authService.resetPassword(
-      data.code,
-      data.newPassword,
-      data.mobile,
-      data.email,
-    );
     return { status: 'success' };
   }
 }

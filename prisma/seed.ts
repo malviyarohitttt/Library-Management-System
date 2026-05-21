@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Command } from 'commander';
 import { isEmail } from 'class-validator';
-import { admin } from './seeds';
+import { librarian, members, books } from './seeds';
 import { PrismaClient } from '../src/generated/prisma/client';
 
 const program = new Command();
@@ -11,24 +11,54 @@ const prisma = new PrismaClient();
 
 async function main() {
   const options = program.opts();
-
-  // Seed admin default credential
-  if (!options.seedOnly || options.seedOnly === 'admin') {
-    if (await prisma.admin.count()) {
-      console.log('⚠ Skipping seed for `admin`, due to non-empty table');
+  /**
+   * Seed Librarian
+   */
+  if (!options.seedOnly || options.seedOnly === 'librarian') {
+    if (await prisma.librarian.count()) {
+      console.log('⚠ Skipping seed for `librarian`, due to non-empty table');
     } else {
       if (
-        isEmail(admin.email) &&
-        admin.meta?.create?.passwordHash &&
-        admin.meta.create.passwordSalt
+        isEmail(librarian.email) &&
+        librarian.librarianMeta?.create?.passwordHash &&
+        librarian.librarianMeta.create.passwordSalt
       ) {
-        await prisma.admin.create({
-          data: admin,
-        });
+        await prisma.librarian.create({ data: librarian });
+        console.log('librarian seeded');
       } else {
-        console.error(new Error('Invalid default admin credentials found'));
+        throw new Error('Invalid default librarian credentials found');
       }
     }
+  }
+
+  /**
+   * Seed Members
+   */
+  if (!options.seedOnly || options.seedOnly === 'members') {
+    for (const member of members) {
+      await prisma.member.upsert({
+        where: { membershipId: member.membershipId },
+        update: {},
+        create: member,
+      });
+    }
+
+    console.log(`${members.length} members seeded`);
+  }
+
+  /**
+   * Seed Books
+   */
+  if (!options.seedOnly || options.seedOnly === 'books') {
+    for (const book of books) {
+      await prisma.book.upsert({
+        where: { isbn: book.isbn },
+        update: {},
+        create: book,
+      });
+    }
+
+    console.log(`${books.length} books seeded`);
   }
 }
 
