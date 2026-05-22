@@ -13,11 +13,11 @@ import { MetricsInterceptor, MetricsModule, MetricsService } from './metrics';
 import { PrismaModule } from './prisma';
 import { AuthModule } from './auth';
 import { RedisModule } from './redis';
-import { LibrariansModule } from './librarians/librarians.module';
-import { MembersModule } from './members/members.module';
-import { BooksModule } from './books/books.module';
-import { RentalsModule } from './rentals/rentals.module';
-import { SchedulingModule } from './scheduling/scheduling.module';
+import { LibrariansModule } from './librarians';
+import { MembersModule } from './members';
+import { BooksModule } from './books';
+import { RentalsModule } from './rentals';
+import { SchedulingModule } from './scheduling';
 
 @Module({
   imports: [

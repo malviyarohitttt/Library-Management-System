@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookDto, UpdateBookDto, GetBooksDto } from './dto';
-import { getPaginationParams } from '../common/utils/pagination.utils';
+import { getPaginationParams } from '@Common';
 
 @Injectable()
 export class BooksService {
@@ -23,31 +23,26 @@ export class BooksService {
       );
     }
 
-    const book = await this.prisma.book.create({
+    await this.prisma.book.create({
       data: {
-        ...dto,
-        availableCopies: dto.totalCopies,
+        title: dto.title,
+        genre: dto.genre,
+        description: dto.description,
+        publishedYear: dto.publishedYear,
+        isbn: dto.isbn,
+        totalCopies: dto.totalCopies,
+        author: dto.author,
       },
     });
 
     return {
       status: 'success',
       message: 'Book added to library successfully',
-      data: book,
     };
   }
 
   async findAll(query: GetBooksDto) {
-    const {
-      search,
-      author,
-      genre,
-      available,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      page = 1,
-      limit = 10,
-    } = query;
+    const { search, page = 1, limit = 10 } = query;
 
     const { skip, take } = getPaginationParams(page, limit);
 
@@ -61,35 +56,11 @@ export class BooksService {
       ];
     }
 
-    if (author) {
-      where.author = { contains: author, mode: 'insensitive' };
-    }
-
-    if (genre) {
-      where.genre = { contains: genre, mode: 'insensitive' };
-    }
-
-    if (available === 'true') {
-      where.availableCopies = { gt: 0 };
-    }
-
-    const allowedSortFields = [
-      'title',
-      'author',
-      'genre',
-      'createdAt',
-      'availableCopies',
-    ];
-    const orderByField = allowedSortFields.includes(sortBy)
-      ? sortBy
-      : 'createdAt';
-
     const [books, totalBooks] = await Promise.all([
       this.prisma.book.findMany({
         where,
         skip,
         take,
-        orderBy: { [orderByField]: sortOrder },
         include: {
           _count: {
             select: {
@@ -126,7 +97,7 @@ export class BooksService {
     });
 
     if (!book) {
-      throw new NotFoundException(`Book #${id} not found`);
+      throw new NotFoundException(`Book with id ${id} not found`);
     }
 
     return {
@@ -174,15 +145,22 @@ export class BooksService {
       }
     }
 
-    const updated = await this.prisma.book.update({
+    await this.prisma.book.update({
       where: { id },
-      data: dto,
+      data: {
+        title: dto.title,
+        description: dto.description,
+        author: dto.author,
+        isbn: dto.isbn,
+        publishedYear: dto.publishedYear,
+        totalCopies: dto.totalCopies,
+        genre: dto.genre,
+      },
     });
 
     return {
       status: 'success',
       message: 'Book updated successfully',
-      data: updated,
     };
   }
 
@@ -194,9 +172,7 @@ export class BooksService {
     });
 
     if (activeRentals > 0) {
-      throw new BadRequestException(
-        `Cannot delete book with ${activeRentals} active rental(s). Return all copies first.`,
-      );
+      throw new BadRequestException(`Cannot delete book with active rentals.`);
     }
 
     await this.prisma.book.delete({ where: { id } });
@@ -204,14 +180,13 @@ export class BooksService {
     return {
       status: 'success',
       message: 'Book deleted successfully',
-      data: null,
     };
   }
 
   async findOneOrFail(id: number) {
     const book = await this.prisma.book.findUnique({ where: { id } });
     if (!book) {
-      throw new NotFoundException(`Book #${id} not found`);
+      throw new NotFoundException(`Book ${id} not found`);
     }
     return book;
   }

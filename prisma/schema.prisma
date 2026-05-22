@@ -35,14 +35,16 @@ enum LibrarianStatus {
 }
 
 model Librarian {
-  id            Int             @id @default(autoincrement())
-  name          String
-  email         String          @unique
-  status        LibrarianStatus @default(Active)
-  role          Role            @default(Librarian)
-  rentals       Rental[]        @relation("IssuedBy")
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id     Int             @id @default(autoincrement())
+  name   String
+  email  String          @unique
+  status LibrarianStatus @default(Active)
+  role   Role            @default(Librarian)
+
+  rentals Rental[] @relation("IssuedBy")
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   librarianMeta LibrarianMeta?
 
   @@map("librarian")
@@ -75,19 +77,20 @@ model Member {
 }
 
 model Book {
-  id              Int      @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   title           String
   author          String
-  isbn            String   @unique
+  isbn            String  @unique
   genre           String?
   description     String?
   publishedYear   Int?
-  rackNumber      String?
-  totalCopies     Int      @default(1)
-  availableCopies Int      @default(1)
-  rentals         Rental[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  totalCopies     Int     @default(1)
+  availableCopies Int     @default(1)
+
+  rentals Rental[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("books")
 }

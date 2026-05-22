@@ -48,12 +48,6 @@ export class CreateBookDto {
   @IsOptional()
   publishedYear?: number;
 
-  @ApiPropertyOptional({ example: 'A-01' })
-  @IsString()
-  @IsOptional()
-  @MaxLength(20)
-  rackNumber?: string;
-
   @ApiProperty({ example: 3, minimum: 1 })
   @IsInt()
   @Min(1)

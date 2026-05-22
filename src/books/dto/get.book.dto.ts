@@ -14,34 +14,6 @@ export class GetBooksDto {
   @IsOptional()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by author' })
-  @IsString()
-  @IsOptional()
-  author?: string;
-
-  @ApiPropertyOptional({ description: 'Filter by genre' })
-  @IsString()
-  @IsOptional()
-  genre?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter available books only',
-    type: Boolean,
-  })
-  @IsOptional()
-  available?: string;
-
-  @ApiPropertyOptional({
-    description: 'Sort by field',
-    enum: ['title', 'author', 'genre', 'createdAt', 'availableCopies'],
-  })
-  @IsOptional()
-  sortBy?: string;
-
-  @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'asc' })
-  @IsOptional()
-  sortOrder?: 'asc' | 'desc';
-
   @ApiPropertyOptional({ default: 1 })
   @IsNumber()
   @Min(1)

@@ -1,2 +1,2 @@
-export * from './librarians.controller';
+export * from './librarians.module';
 export * from './librarians.service';

@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMemberDto, UpdateMemberDto, GetMembersDto } from './dto';
 import { MembershipStatus } from 'src/generated/prisma/enums';
-import { getPaginationParams } from 'src/common/utils/pagination.utils';
-import { generateMembershipId } from 'src/common/utils/fine.utils';
+import { generateMembershipId, getPaginationParams } from '@Common';
 
 @Injectable()
 export class MembersService {
@@ -36,7 +35,10 @@ export class MembersService {
 
     const member = await this.prisma.member.create({
       data: {
-        ...dto,
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        address: dto.address,
         membershipId,
       },
     });
@@ -108,7 +110,7 @@ export class MembersService {
     });
 
     if (!member) {
-      throw new Error(`Member #${id} not found`);
+      throw new Error(`Member ${id} not found`);
     }
 
     return {
@@ -137,7 +139,7 @@ export class MembersService {
   async update(id: number, dto: UpdateMemberDto) {
     await this.findOneOrFail(id);
 
-     if (dto.phone) {
+    if (dto.phone) {
       const existing = await this.prisma.member.findFirst({
         where: { phone: dto.phone, NOT: { id } },
       });
@@ -146,7 +148,7 @@ export class MembersService {
       }
     }
 
-     if (dto.email) {
+    if (dto.email) {
       const existing = await this.prisma.member.findFirst({
         where: { email: dto.email, NOT: { id } },
       });
@@ -167,7 +169,7 @@ export class MembersService {
     };
   }
 
-  async block(id: number) {
+  async setStatus(id: number) {
     await this.findOneOrFail(id);
 
     const member = await this.prisma.member.update({
@@ -185,7 +187,7 @@ export class MembersService {
   async remove(id: number) {
     await this.findOneOrFail(id);
 
-     const activeRentals = await this.prisma.rental.count({
+    const activeRentals = await this.prisma.rental.count({
       where: {
         memberId: id,
         status: 'Issued',
@@ -207,10 +209,41 @@ export class MembersService {
     };
   }
 
+  async history(id: number) {
+    const rentals = await this.prisma.rental.findMany({
+      where: {
+        memberId: id,
+      },
+      include: {
+        book: {
+          select: {
+            id: true,
+            title: true,
+            author: true,
+            genre: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!rentals.length) {
+      throw new NotFoundException('No rental history found!');
+    }
+
+    return {
+      status: 'success',
+      message: 'Rental history retrieved successfully!',
+      data: rentals,
+    };
+  }
+
   private async findOneOrFail(id: number) {
     const member = await this.prisma.member.findUnique({ where: { id } });
     if (!member) {
-      throw new Error(`Member #${id} not found`);
+      throw new Error(`Member ${id} not found`);
     }
     return member;
   }

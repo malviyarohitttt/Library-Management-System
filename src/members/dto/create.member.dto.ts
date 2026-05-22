@@ -20,7 +20,7 @@ export class CreateMemberDto {
   @IsOptional()
   email?: string;
 
-  @ApiProperty({ example: '9876543210' })
+  @ApiProperty({ example: '9123456789' })
   @IsString()
   @IsNotEmpty()
   @Matches(/^[6-9]\d{9}$/, {

@@ -1,16 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { calculateDueDate } from '../common/utils/fine.utils';
-import { getPaginationParams } from '../common/utils/pagination.utils';
+import {
+  getPaginationParams,
+  calculateDueDate,
+  MAX_ACTIVE_RENTALS,
+} from '@Common';
+
 import { IssueBookDto, GetRentalsDto } from './dto';
 import { RentalStatus } from 'src/generated/prisma/enums';
 
-const MAX_ACTIVE_RENTALS = 3;
-
 @Injectable()
 export class RentalsService {
-  private readonly logger = new Logger(RentalsService.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
   async issueBook(dto: IssueBookDto, librarianId: number) {
@@ -36,7 +36,7 @@ export class RentalsService {
       });
 
       if (!book) {
-        throw new Error(`Book #${bookId} not found`);
+        throw new Error(`Book with id ${bookId} not found`);
       }
 
       if (book.availableCopies <= 0) {
@@ -96,7 +96,7 @@ export class RentalsService {
         data: { availableCopies: { decrement: 1 } },
       });
 
-      this.logger.log(
+      console.log(
         `Book issued: "${book.title}" → ${member.name} (${membershipId}), due: ${dueDate.toDateString()}`,
       );
 
@@ -121,11 +121,11 @@ export class RentalsService {
       });
 
       if (!rental) {
-        throw new Error(`Rental #${rentalId} not found`);
+        throw new Error(`Rental ${rentalId} not found`);
       }
 
       if (rental.status === RentalStatus.Returned) {
-        throw new Error(`Rental #${rentalId} has already been returned`);
+        throw new Error(`Rental ${rentalId} has already been returned`);
       }
 
       const updatedRental = await tx.rental.update({
@@ -148,7 +148,7 @@ export class RentalsService {
         },
       });
 
-      this.logger.log(
+      console.log(
         `Book returned: "${rental.book.title}" from ${rental.member.name}`,
       );
 
@@ -188,8 +188,8 @@ export class RentalsService {
     return {
       status: 'success',
       message: 'Rentals retrieved successfully',
-      data: rentals,
       totalRentals,
+      data: rentals,
     };
   }
 
@@ -202,7 +202,7 @@ export class RentalsService {
     });
 
     if (!member) {
-      throw new Error(`Member #${memberId} not found`);
+      throw new Error(`Member ${memberId} not found`);
     }
 
     const [rentals, totalRentals] = await Promise.all([

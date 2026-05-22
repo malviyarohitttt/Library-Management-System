@@ -9,8 +9,6 @@ import {
   Query,
   ParseIntPipe,
   UseGuards,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { MembersService } from './members.service';
@@ -47,12 +45,15 @@ export class MembersController {
 
   @Patch(':id/block')
   block(@Param('id', ParseIntPipe) id: number) {
-    return this.membersService.block(id);
+    return this.membersService.setStatus(id);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.membersService.remove(id);
+  }
+  @Patch(':id/history')
+  history(@Param('id', ParseIntPipe) id: number) {
+    return this.membersService.history(id);
   }
 }

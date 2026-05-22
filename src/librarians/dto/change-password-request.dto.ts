@@ -4,9 +4,9 @@ import { IsString, IsStrongPassword } from 'class-validator';
 export class ChangePasswordRequestDto {
   @ApiProperty()
   @IsString()
-  oldPassword: string;
+  oldPassword!: string;
 
   @ApiProperty()
   @IsStrongPassword()
-  newPassword: string;
+  newPassword!: string;
 }

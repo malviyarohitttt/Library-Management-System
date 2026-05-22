@@ -212,18 +212,6 @@ http://localhost:{PORT}/api
 
 ## 📋 API Examples
 
-### Register Librarian
-
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Rohit Librarian",
-    "email": "rohit@library.com",
-    "password": "Password123!@#!"
-  }'
-```
-
 ### Login
 
 ```bash
