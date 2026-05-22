@@ -8,7 +8,27 @@
 
 ## Description
 
-To be specified.
+Library Management System is a backend-based application built to manage day-to-day library operations efficiently. This system is designed for a librarian-controlled workflow, where only the librarian/admin handles all activities, and members (students or other users) do not log in directly.
+
+The librarian can register members, manage book inventory, issue books on rent, process returns, calculate fines, and track overdue rentals. The system automatically manages book availability, prevents duplicate active rentals, limits members to a maximum number of active rentals, and ensures proper validation of business rules.
+
+It is built using NestJS, Prisma ORM, PostgreSQL, Redis, and Docker, following a scalable and modular architecture for maintainability and performance. The system includes secure JWT-based authentication, transaction-safe rental handling, inventory tracking, overdue management, and fine calculation.
+
+This project is ideal for schools, colleges, private libraries, coaching centers, and community libraries where a librarian centrally manages books and member records.
+
+Key Features
+Librarian authentication (Register/Login)
+Member registration & management
+Book inventory management
+Book issue & return system
+Due date and overdue tracking
+Rental history management
+Secure JWT authentication
+PostgreSQL + Prisma integration
+Redis caching support
+Docker-ready deployment
+
+Goal: To provide a secure, scalable, and easy-to-manage library system where the librarian controls all book circulation and member activities.
 
 ## Installation
 
