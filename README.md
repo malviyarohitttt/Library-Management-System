@@ -3,7 +3,7 @@
 </p> -->
 
 <p align="center">
-  <a href="#" target="_blank">NestJS App</a> built using Nest framework with Typescript & Postgres database.
+  <a href="#" target="_blank">Library Management System</a>
 </p>
 
 ## Description
@@ -15,13 +15,18 @@ To be specified.
 _Note: Skip this section for docker based production deployment_
 
 ```bash
-# install dependencies
-$ npm install
+git clone <repo-url>
+cd library-management-system
+npm install
 ```
 
 ## Setup
 
 Copy the contents of example.env to create .env in the root and update env variables to set server configuration to run.
+
+```bash
+cp .env.example .env
+```
 
 First you need to run and initialize databases.
 
@@ -139,16 +144,6 @@ $ npm run db:migrate:reset
 $ npm run db:migrate:deploy
 ```
 
-## API Documentation
-
-```bash
-# development
-http://localhost:{PORT}/api-spec
-
-# production
-{API_URL}/api-spec
-```
-
 ## Monitoring
 
 To enable metrics server update `.env` file with below variables -
@@ -173,9 +168,143 @@ To access `Grafana` & `Prometheus` navigate to below urls -
 
 ```bash
 # Grafana
-http://127.0.0.1:{GFAFANA_PORT}
+http://127.0.0.1:{GRAFANA_PORT}
 
 # Prometheus
 http://127.0.0.1:{PROMETHEUS_PORT}
 
 ```
+
+## API Documentation
+
+```bash
+# development
+http://localhost:{PORT}/api
+
+```
+
+## 🔑 Default Credentials (after seed)
+
+| Field    | Value                 |
+| -------- | --------------------- |
+| Email    | librarian@library.com |
+| Password | Admin123!@#           |
+
+## 📋 API Examples
+
+### Register Librarian
+
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Rohit Librarian",
+    "email": "rohit@library.com",
+    "password": "Password123!@#!"
+  }'
+```
+
+### Login
+
+```bash
+curl -X POST http://localhost:{PORT}/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "librarian@library.com",
+    "password": "Admin123!@#"
+  }'
+# Response includes "token" — use it as Bearer token in all subsequent requests
+```
+
+### Register Member
+
+```bash
+curl -X POST http://localhost:{PORT}/members \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Rahul Sharma",
+    "email": "rahul@example.com",
+    "phone": "9876543210",
+    "address": "Indore, MP"
+  }'
+# Response includes auto-generated "membershipId": "MEM-1001"
+```
+
+### Add Book
+
+```bash
+curl -X POST http://localhost:{PORT}/books \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "isbn": "978-0-13-468599-1",
+    "genre": "Technology",
+    "publishedYear": 2008,
+    "totalCopies": 3
+  }'
+```
+
+### Issue Book
+
+```bash
+curl -X POST http://localhost:{PORT}/rentals/issue \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "membershipId": "MEM-1001",
+    "bookId": 1,
+    "dueDays": 7
+  }'
+```
+
+### Return Book
+
+```bash
+curl -X PATCH http://localhost:{PORT}/rentals/return/1 \
+  -H "Authorization: Bearer <token>"
+
+```
+
+---
+
+## 🔧 Business Rules
+
+### Members
+
+- `membershipId` is auto-generated as `MEM-1001`, `MEM-1002`, etc.
+- `BLOCKED` members cannot rent books
+- Phone number must be unique (10-digit Indian mobile)
+- Cannot delete a member with active rentals
+
+### Books
+
+- `availableCopies` is set equal to `totalCopies` on creation
+- `availableCopies` decrements on issue, increments on return
+- Cannot delete a book with active rentals
+- `availableCopies` can never go negative
+
+### Rentals
+
+- Max **3 active rentals** per member
+- Same member cannot rent the same book twice simultaneously
+- `dueDate` = `issueDate + dueDays`
+- Overdue status is auto-updated when `dueDate < now`
+- Only `ISSUED` or `OVERDUE` rentals can be returned
+
+---
+
+---
+
+## 🔒 Security Features
+
+- JWT authentication (Bearer token)
+- Passwords hashed
+- Helmet HTTP security headers
+- CORS protection
+- Global ValidationPipe with whitelist
+- Prisma parameterized queries (SQL injection safe)
+
+---

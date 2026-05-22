@@ -15,6 +15,9 @@ import { AuthModule } from './auth';
 import { RedisModule } from './redis';
 import { LibrariansModule } from './librarians/librarians.module';
 import { MembersModule } from './members/members.module';
+import { BooksModule } from './books/books.module';
+import { RentalsModule } from './rentals/rentals.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { MembersModule } from './members/members.module';
     AuthModule,
     LibrariansModule,
     MembersModule,
+    BooksModule,
+    RentalsModule,
+    SchedulingModule,
   ],
   controllers: [AppController],
   providers: [

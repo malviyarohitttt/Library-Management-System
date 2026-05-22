@@ -14,11 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { MembersService } from './members.service';
-import {
-  CreateMemberDto,
-  UpdateMemberDto,
-  QueryMembersDto,
-} from './dto/member.dto';
+import { CreateMemberDto, UpdateMemberDto, GetMembersDto } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Members')
@@ -34,7 +30,7 @@ export class MembersController {
   }
 
   @Get()
-  findAll(@Query() query: QueryMembersDto) {
+  findAll(@Query() query: GetMembersDto) {
     return this.membersService.findAll(query);
   }
 

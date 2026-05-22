@@ -46,11 +46,3 @@ export function calculateDueDate(issueDate: Date, dueDays: number): Date {
   dueDate.setDate(dueDate.getDate() + dueDays);
   return dueDate;
 }
-
-/**
- * Check if a rental is overdue
- */
-export function isOverdue(dueDate: Date, returnDate?: Date | null): boolean {
-  const compareDate = returnDate ? new Date(returnDate) : new Date();
-  return compareDate > new Date(dueDate);
-}

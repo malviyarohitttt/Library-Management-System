@@ -1,15 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateMemberDto,
-  UpdateMemberDto,
-  QueryMembersDto,
-} from './dto/member.dto';
+import { CreateMemberDto, UpdateMemberDto, GetMembersDto } from './dto';
 import { MembershipStatus } from 'src/generated/prisma/enums';
-import {
-  getPaginationParams,
-  paginate,
-} from 'src/common/utils/pagination.utils';
+import { getPaginationParams } from 'src/common/utils/pagination.utils';
 import { generateMembershipId } from 'src/common/utils/fine.utils';
 
 @Injectable()
@@ -55,7 +48,7 @@ export class MembersService {
     };
   }
 
-  async findAll(query: QueryMembersDto) {
+  async findAll(query: GetMembersDto) {
     const { search, page = 1, limit = 10 } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
@@ -90,7 +83,8 @@ export class MembersService {
     return {
       status: 'success',
       message: 'Members retrieved successfully',
-      data: paginate(members, total, page, limit),
+      data: members,
+      total,
     };
   }
 
@@ -137,15 +131,13 @@ export class MembersService {
     if (!member) {
       throw new Error(`Member with ID ${membershipId} not found`);
     }
-
     return member;
   }
 
   async update(id: number, dto: UpdateMemberDto) {
     await this.findOneOrFail(id);
 
-    // Check phone uniqueness
-    if (dto.phone) {
+     if (dto.phone) {
       const existing = await this.prisma.member.findFirst({
         where: { phone: dto.phone, NOT: { id } },
       });
@@ -154,8 +146,7 @@ export class MembersService {
       }
     }
 
-    // Check email uniqueness
-    if (dto.email) {
+     if (dto.email) {
       const existing = await this.prisma.member.findFirst({
         where: { email: dto.email, NOT: { id } },
       });
@@ -194,8 +185,7 @@ export class MembersService {
   async remove(id: number) {
     await this.findOneOrFail(id);
 
-    // Check for active rentals
-    const activeRentals = await this.prisma.rental.count({
+     const activeRentals = await this.prisma.rental.count({
       where: {
         memberId: id,
         status: 'Issued',
