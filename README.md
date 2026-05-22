@@ -8,31 +8,50 @@
 
 ## Description
 
-Library Management System is a backend-based application built to manage day-to-day library operations efficiently. This system is designed for a librarian-controlled workflow, where only the librarian/admin handles all activities, and members (students or other users) do not log in directly.
+A simple backend-based **Library Management System** built using **NestJS, Prisma ORM, PostgreSQL, JWT Authentication, and Docker**.
 
-The librarian can register members, manage book inventory, issue books on rent, process returns, calculate fines, and track overdue rentals. The system automatically manages book availability, prevents duplicate active rentals, limits members to a maximum number of active rentals, and ensures proper validation of business rules.
+This system follows a **librarian-managed workflow**, where only the librarian/admin can log in and manage the library. Members do not have direct access to the system.
 
-It is built using NestJS, Prisma ORM, PostgreSQL, Redis, and Docker, following a scalable and modular architecture for maintainability and performance. The system includes secure JWT-based authentication, transaction-safe rental handling, inventory tracking, overdue management, and fine calculation.
+The librarian can:
 
-This project is ideal for schools, colleges, private libraries, coaching centers, and community libraries where a librarian centrally manages books and member records.
+- Manage books
+- Register members
+- Issue books
+- Return books
+- View rental history
+- Track book availability
 
-Key Features
-Librarian authentication (Register/Login)
-Member registration & management
-Book inventory management
-Book issue & return system
-Due date and overdue tracking
-Rental history management
-Secure JWT authentication
-PostgreSQL + Prisma integration
-Redis caching support
-Docker-ready deployment
+---
 
-Goal: To provide a secure, scalable, and easy-to-manage library system where the librarian controls all book circulation and member activities.
+## Features
 
-## Installation
+- Librarian Authentication (JWT)
+- Member Management
+- Book Management
+- Book Issue / Return
+- Rental History Tracking
+- Book Availability Management
+- Duplicate Rental Prevention
+- Member Blocking System
+- Pagination & Search
+- Swagger API Documentation
+- Docker Support
 
-_Note: Skip this section for docker based production deployment_
+---
+
+## Tech Stack
+
+- NestJS
+- Prisma ORM
+- PostgreSQL
+- Docker
+- JWT Authentication
+- Swagger
+- TypeScript
+
+---
+
+## Installation & Setup
 
 ```bash
 git clone <repo-url>
@@ -40,65 +59,51 @@ cd library-management-system
 npm install
 ```
 
-## Setup
-
 Copy the contents of example.env to create .env in the root and update env variables to set server configuration to run.
 
 ```bash
 cp .env.example .env
+
+# Update this with your DATABASE_URL
+DATABASE_URL=postgresql://postgres:admin@localhost:5432/"your_db_url"
+
+#Update this with your REDIS_URI
+REDIS_URI=redis://default:secret@redis:6379
+
+# Update Jwt Secrate
+JWT_SECRET="your_jwt_secrate"
 ```
 
 First you need to run and initialize databases.
 
-> For non docker environment
-
-`DATABASE_URL`, `REDIS_URI` in .env will be use to connect with databases, Please make sure you have correct connection uri here.
+## Migrate/Sync Database Schema
 
 ```bash
-# development
-$ npm run db:init
+# initialize the prisma schema
+$ npx prisma init
 
-# production
-$ npm run db:migrate:deploy
-$ npm run db:seed
+# generate migration for new changes
+$ npx prisma migrate dev --name init
+
+# generate client with schema
+$ npx prisma generate
+
+# reset database
+$ npx prisma migrate reset
+
+# preview schema
+$ npx prisma studio
+
+# seed database
+$ npx prisma db seed
+
 ```
 
-> For docker environment
-
-_Note: If you already have running required database containers then you can follow same setup as mentioned above for non docker environment._
-
-`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`, `REDIS_PORT`, `REDIS_PASSWORD` will be use to create database containers with authentication credential from .env, So make sure `DATABASE_URL` and `REDIS_URI` have exact same user, password and port for connection.
-
-To run production database containers you need to set `POSTGRES_DATA_VOLUME` and `REDIS_DATA_VOLUME` value to be set in .env file to mount the volume into host machine.
+## Test
 
 ```bash
-# development
-$ npm run dev:db
-$ npm run db:init
-
-# production
-$ npm run prod:db
-$ npm run db:migrate:deploy
-$ npm run db:seed
-```
-
-For convenience to switch between docker environment to local environment & testing, Please create host entry in your machine with following:-
-
-```
-127.0.0.1 postgres
-127.0.0.1 redis
-```
-
-## Run the server in docker container
-
-```bash
-# development
-$ npm run dev
-$ npm run dev:stop # To shut down containers
-
-# production
-$ npm run prod
-$ npm run prod:stop # To shut down containers
+# unit tests
+$ npm run test
 ```
 
 ## Run the server in local machine
@@ -111,90 +116,6 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Migrate/Sync Database Schema
-
-```bash
-# initialize database - push schema, add constraints & seed database
-$ npm run db:init
-
-# preview schema
-$ npm run db:studio
-
-# seed database
-$ npm run db:seed
-
-# seed specific seed file into the database
-$ npm run db:seed:only <name> # i.e. `npm run db:seed:only admin` to run prisma/seeds/admin.seed.ts
-
-# add constraints in schema (Note: Not required, If not using `db:schema:push` on staging or production env)
-$ npm run db:schema:constraints
-
-# add constraints for the specific table
-$ npm run db:schema:constraints:only <table name> # i.e. `npm run db:schema:constraints:only user` to add constraints into the user table
-
-# generate client with schema
-$ npm run db:client:generate
-
-# push schema changes to the database without migration
-$ npm run db:schema:push
-
-# generate migration for new changes
-$ npm run db:migration:create
-
-# generate migration for new changes & deploy
-$ npm run db:migrate:dev
-
-# reset database
-$ npm run db:migrate:reset
-
-# deploy all migrations
-$ npm run db:migrate:deploy
-```
-
-## Monitoring
-
-To enable metrics server update `.env` file with below variables -
-
-```bash
-ENABLE_METRICS=true
-METRICS_PORT=8080
-METRICS_HOST=0.0.0.0
-```
-
-Copy `example.env` file & create `.env` file in `monitoring` directory. Then use below command to start/stop monitoring tools `Prometheus` & `Grafana`
-
-```bash
-# start
-$ npm run monitoring
-
-# stop
-$ npm run monitoring:stop
-```
-
-To access `Grafana` & `Prometheus` navigate to below urls -
-
-```bash
-# Grafana
-http://127.0.0.1:{GRAFANA_PORT}
-
-# Prometheus
-http://127.0.0.1:{PROMETHEUS_PORT}
-
-```
-
 ## API Documentation
 
 ```bash
@@ -203,78 +124,297 @@ http://localhost:{PORT}/api
 
 ```
 
-## 🔑 Default Credentials (after seed)
+## 🔑 Default Credentials for Librarian
 
 | Field    | Value                 |
 | -------- | --------------------- |
 | Email    | librarian@library.com |
 | Password | Admin123!@#           |
 
-## 📋 API Examples
+# API Documentation
 
-### Login
+---
 
-```bash
-curl -X POST http://localhost:{PORT}/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "librarian@library.com",
-    "password": "Admin123!@#"
-  }'
-# Response includes "token" — use it as Bearer token in all subsequent requests
-```
-
-### Register Member
+Base URL:
 
 ```bash
-curl -X POST http://localhost:{PORT}/members \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Rahul Sharma",
-    "email": "rahul@example.com",
-    "phone": "9876543210",
-    "address": "Indore, MP"
-  }'
-# Response includes auto-generated "membershipId": "MEM-1001"
+http://localhost:3000
 ```
+
+Protected routes require:
+
+```bash
+Authorization: Bearer <token>
+```
+
+---
+
+## Authentication & Authorization
+
+### Login Librarian
+
+`POST /auth/login`
+
+Authenticate librarian and return JWT token.
+
+**Request**
+
+```json
+{
+  "email": "librarian@gmail.com",
+  "password": "Admin123!@#"
+}
+```
+
+---
+
+### Logout Librarian
+
+`POST /auth/logout`
+
+Logout authenticated librarian.
+
+---
+
+## Librarian APIs
+
+### Update Profile
+
+`PATCH /librarian/update`
+
+Update librarian profile details.
+
+---
+
+### Change Password
+
+`POST /librarian/change-password`
+
+Change librarian password.
+
+---
+
+### Authenticate Password
+
+`POST /librarian/authenticate`
+
+Verify password before sensitive actions.
+
+---
+
+## Member APIs
+
+### Create Member
+
+`POST /members`
+
+Register a new library member.
+
+Example Request:
+
+```json
+{
+  "name": "Rahul Sharma",
+  "email": "rahul@example.com",
+  "phone": "9123456789",
+  "address": "Indore, Madhya Pradesh"
+}
+```
+
+---
+
+### Get All Members
+
+`GET /members`
+
+Supports:
+
+- Search
+- Pagination
+
+Query Example:
+
+```bash
+/members?search=rahul&page=1&limit=10
+```
+
+---
+
+### Get Member By ID
+
+`GET /members/:id`
+
+Fetch member details.
+
+---
+
+### Update Member
+
+`PATCH /members/:id`
+
+Update member details.
+
+---
+
+### Delete Member
+
+`DELETE /members/:id`
+
+Delete a member.
+
+---
+
+### Block Member
+
+`PATCH /members/:id/block`
+
+Block a member from renting books.
+
+---
+
+### Member Rental History
+
+`PATCH /members/:id/history`
+
+Get rental history of a member.
+
+---
+
+## Book APIs
 
 ### Add Book
 
-```bash
-curl -X POST http://localhost:{PORT}/books \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Clean Code",
-    "author": "Robert C. Martin",
-    "isbn": "978-0-13-468599-1",
-    "genre": "Technology",
-    "publishedYear": 2008,
-    "totalCopies": 3
-  }'
+`POST /books`
+
+Create a new book.
+
+Example Request:
+
+```json
+{
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "isbn": "978-0-13-468599-1",
+  "genre": "Technology",
+  "description": "A handbook of agile software craftsmanship",
+  "publishedYear": 2008,
+  "totalCopies": 3
+}
 ```
+
+---
+
+### Get All Books
+
+`GET /books`
+
+Supports:
+
+- Search by title
+- Search by author
+- Pagination
+
+Example:
+
+```bash
+/books?search=clean code&page=1&limit=10
+```
+
+---
+
+### Get Book By ID
+
+`GET /books/:id`
+
+Fetch book details.
+
+---
+
+### Update Book
+
+`PATCH /books/:id`
+
+Update book details.
+
+---
+
+### Delete Book
+
+`DELETE /books/:id`
+
+Delete a book.
+
+---
+
+## Rental APIs
 
 ### Issue Book
 
-```bash
-curl -X POST http://localhost:{PORT}/rentals/issue \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "membershipId": "MEM-1001",
-    "bookId": 1,
-    "dueDays": 7
-  }'
+`POST /rentals/issue`
+
+Issue a book to a member.
+
+Example Request:
+
+```json
+{
+  "membershipId": "MEM-1001",
+  "bookId": 1,
+  "dueDays": 7
+}
 ```
+
+---
 
 ### Return Book
 
-```bash
-curl -X PATCH http://localhost:{PORT}/rentals/return/1 \
-  -H "Authorization: Bearer <token>"
+`PATCH /rentals/return/:rentalId`
 
+Return an issued book.
+
+---
+
+### Get All Rentals
+
+`GET /rentals`
+
+Supports:
+
+- Status filter
+- Pagination
+
+Available status:
+
+- Issued
+- Returned
+- Overdue
+
+Example:
+
+```bash
+/rentals?status=Issued&page=1&limit=10
 ```
+
+---
+
+### Get Overdue Rentals
+
+`GET /rentals/overdue`
+
+Fetch all overdue rentals.
+
+---
+
+### Get Member Rentals
+
+`GET /rentals/member/:memberId`
+
+Get rental records of a specific member.
+
+Supports:
+
+- Status filter
+- Pagination
 
 ---
 
@@ -299,10 +439,8 @@ curl -X PATCH http://localhost:{PORT}/rentals/return/1 \
 - Max **3 active rentals** per member
 - Same member cannot rent the same book twice simultaneously
 - `dueDate` = `issueDate + dueDays`
-- Overdue status is auto-updated when `dueDate < now`
+- Overdue status is auto-updated when `dueDate < now`, by running "CRON" job in background
 - Only `ISSUED` or `OVERDUE` rentals can be returned
-
----
 
 ---
 
